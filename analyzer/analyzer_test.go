@@ -14,9 +14,11 @@ func TestAnalyzer(t *testing.T) {
 	conf := &lint.Config{
 		Confidence: 0.8,
 		Rules: lint.RulesConfig{
-			"errorf":          {},
-			"unhandled-error": {},
-			"var-naming":      {},
+			"errorf":            {},
+			"line-length-limit": {Arguments: lint.Arguments{int64(150)}},
+			"package-comments":  {},
+			"unhandled-error":   {},
+			"var-naming":        {},
 		},
 	}
 

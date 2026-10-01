@@ -73,6 +73,11 @@ func (f *File) ToPosition(pos token.Pos) token.Position {
 	return f.Pkg.fset.Position(pos)
 }
 
+// LineStart returns the position of the first character of the given 1-based line.
+func (f *File) LineStart(line int) token.Pos {
+	return f.Pkg.fset.File(f.AST.Pos()).LineStart(line)
+}
+
 // Render renders a node.
 func (f *File) Render(x any) string {
 	var buf bytes.Buffer
@@ -153,7 +158,11 @@ func (f *File) lint(rules []Rule, config Config, failures chan Failure) error {
 				failure.RuleName = currentRule.Name()
 			}
 			if failure.Node != nil {
-				failure.Position = ToFailurePosition(failure.Node.Pos(), failure.Node.End(), f)
+				failure.Pos = failure.Node.Pos()
+				failure.End = failure.Node.End()
+			}
+			if failure.Pos.IsValid() {
+				failure.Position = ToFailurePosition(failure.Pos, failure.End, f)
 			}
 			filtered = append(filtered, failure)
 		}
@@ -270,6 +279,8 @@ func (f *File) disabledIntervals(rules []Rule, mustSpecifyDisableReason, mustSpe
 					RuleName:   directiveSpecifyDisableReason,
 					Failure:    "reason of lint disabling not found",
 					Position:   ToFailurePosition(c.Pos(), c.End(), f),
+					Pos:        c.Pos(),
+					End:        c.End(),
 					Node:       c,
 				}
 				continue // skip this linter disabling directive
@@ -282,6 +293,8 @@ func (f *File) disabledIntervals(rules []Rule, mustSpecifyDisableReason, mustSpe
 					RuleName:   directiveSpecifyDisableRule,
 					Failure:    "rule name for lint disabling not found",
 					Position:   ToFailurePosition(c.Pos(), c.End(), f),
+					Pos:        c.Pos(),
+					End:        c.End(),
 					Node:       c,
 				}
 				continue // skip this linter disabling directive
